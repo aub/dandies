@@ -55,6 +55,9 @@ LEAF_GAP_MAX_ANGLE = 60.0
 LEAF_MIN_GAPS = 1
 LEAF_MAX_GAPS = 3
 
+MIN_GLOBAL_SCALE = 0.3
+MAX_GLOBAL_SCALE = 1.2
+
 def cos_deg(degrees)
   Math.cos(0.01745329252 * degrees)
 end
@@ -515,9 +518,22 @@ end
 
 existing_rotations = []
 
-global_scale = (rand() * 0.5) + 0.1
-x_position = (rand() * WIDTH * 0.2) - (WIDTH * 0.2 * 0.5)
-y_position = (rand() * HEIGHT * 0.2) + (HEIGHT * 0.2 * 0.5)
+global_scale = (rand() * (MAX_GLOBAL_SCALE - MIN_GLOBAL_SCALE)) + MIN_GLOBAL_SCALE
+# min_x = WIDTH * 0.4
+# min_y = HEIGHT * 0.4
+# max_x = WIDTH * 0.6
+# max_y = HEIGHT * 0.6
+# x_position = ((rand() * (max_x - min_x)) + min_x) - ((WIDTH * 0.2) / 2.0)
+# y_position = ((rand() * (max_y - min_y)) + min_y) - ((HEIGHT * 0.2) / 2.0)
+# puts "#{x_position}, #{y_position}"
+
+center_max_wiggle_x = WIDTH * 0.3
+center_max_wiggle_y = HEIGHT * 0.3
+center_negate_x = rand() < 0.5
+center_negate_y = rand() < 0.5
+
+wiggle_x = rand() * center_max_wiggle_x * (center_negate_x ? -1.0 : 1.0)
+wiggle_y = rand() * center_max_wiggle_y * (center_negate_y ? -1.0 : 1.0)
 
 leaf_count.round.times do
   number = (1..14).to_a.sample
@@ -532,15 +548,15 @@ leaf_count.round.times do
 
   center_x = WIDTH / 2.0
 
-  x_offset = center_x - leaf.offsets[:x]
+  x_offset = (WIDTH / 2.0) - leaf.offsets[:x]
   y_offset = (HEIGHT / 2.0) - leaf.offsets[:y]
 
   image = leaf.rotated_image
 
   leaf_image = leaf_image.composite(
     image,
-    x_offset + x_position,
-    y_offset + y_position,
+    x_offset + wiggle_x,
+    y_offset + wiggle_y,
     OverCompositeOp
   )
 end
@@ -560,14 +576,48 @@ end
 
 
 
+def random_ass_distance
+  min_length = 10
+  max_length = 200
+  (rand() * (max_length - min_length)) + min_length
+end
+
+def random_ass_gap
+  min_length = 5
+  max_length = 50
+  (rand() * (max_length - min_length)) + min_length
+end
 
 
-# texture_image = Magick::ImageList.new
-# texture_image.new_image(WIDTH, HEIGHT) { self.background_color = "none" }
-# gc = Magick::Draw.new
-# gc.stroke("#ff0000").stroke_width(WATERCOLOR_STROKE_WIDTH).opacity(WATERCOLOR_STROKE_OPACITY)
+texture_image = Magick::ImageList.new
+texture_image.new_image(WIDTH, HEIGHT) { self.background_color = "none" }
+gc = Magick::Draw.new
+gc.stroke("#d4c885").stroke_width(1.0).opacity(1.0)
 # gc.fill_opacity(WATERCOLOR_SPLAT_FILL_OPACITY).fill("##{@color}")
-# gc.draw(texture_image)
+angle_min = 20
+angle_max = 90
+angle = (rand() * (angle_max - angle_min)) + angle_min
+(-1 * WIDTH).step(2.0 * WIDTH, 40).each do |column|
+  total_distance = 0
+  x = column
+  y = -HEIGHT
+  while total_distance < (3.0 * HEIGHT) do
+    distance = random_ass_distance
+    old_x = x
+    old_y = y
+    x = x + (cos_deg(angle) * distance)
+    y = y + (sin_deg(angle) * distance)
+    # puts "#{x}, #{y}"
+    gc.line(old_x, old_y, x, y)
+
+    gap = random_ass_gap
+    x = x + (cos_deg(angle) * gap)
+    y = y + (sin_deg(angle) * gap)
+
+    total_distance += distance + gap
+  end
+end
+gc.draw(texture_image)
 
 
 # shadow = leaf_image.transparent("black", alpha: 0.25)
@@ -610,6 +660,13 @@ shadow_image.write("shadow.png") { self.format = "png" }
 
 
 final_image = Image.new(WIDTH, HEIGHT) { self.background_color = "#e8dcb5" }
+
+final_image = final_image.composite(
+  texture_image,
+  0,
+  0,
+  OverCompositeOp
+)
 
 final_image = final_image.composite(
   shadow_image,
