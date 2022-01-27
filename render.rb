@@ -1,3 +1,6 @@
+require 'rubygems'
+require 'bundler/setup'
+
 require 'RMagick'
 include Magick
 
@@ -7,7 +10,7 @@ SKIP_WATERCOLOR = false
 
 SHADOW_OFFSET = 15
 
-WIDTH = 2000
+WIDTH = 1300
 HEIGHT = 1300
 
 WILDNESS_FACTOR = 30.0
@@ -37,18 +40,18 @@ WATERCOLOR_STROKE_OPACITY = 0.45
 WATERCOLOR_STROKE_WIDTH = 1.0
 WATERCOLOR_SPLAT_FILL_OPACITY = 0.12
 
-WATERCOLOR_MIN_CIRCLES = 5
-WATERCOLOR_MAX_CIRCLES = 10
-WATERCOLOR_MIN_CIRCLE_RADIUS = 10
-WATERCOLOR_MAX_CIRCLE_RADIUS = 50
+WATERCOLOR_MIN_CIRCLES = 10
+WATERCOLOR_MAX_CIRCLES = 20
+WATERCOLOR_MIN_CIRCLE_RADIUS = 50
+WATERCOLOR_MAX_CIRCLE_RADIUS = 80
 
-WATERCOLOR_MIN_SPLATS = 20
-WATERCOLOR_MAX_SPLATS = 40
+WATERCOLOR_MIN_SPLATS = 30
+WATERCOLOR_MAX_SPLATS = 60
 WATERCOLOR_MIN_SPLAT_RADIUS = 10
 WATERCOLOR_MAX_SPLAT_RADIUS = 20
 
 MIN_LEAVES = 35
-MAX_LEAVES = 100
+MAX_LEAVES = 80
 LEAF_MIN_ANGLE_DISTANCE = 0.0
 LEAF_GAP_MIN_ANGLE = 5.0
 LEAF_GAP_MAX_ANGLE = 60.0
@@ -284,124 +287,6 @@ class Splat
   end
 end
 
-shape_blob_collections = []
-
-unless SKIP_WATERCOLOR
-  WATERCOLOR_STRIPE_COUNT.times do |idx|
-    stripe_height = HEIGHT / WATERCOLOR_STRIPE_COUNT
-
-    gos = ["4", "5", "6", "7", "8", "9", "a", "b"]
-    oos = ["0", "1", "2", "3", "4"]
-    color = "#{oos.sample}#{oos.sample}#{gos.sample}#{gos.sample}#{oos.sample}#{oos.sample}"
-
-    shape = Rectangle.new(
-      upper_left: Point.new(
-        x: WATERCOLOR_X_MIN,
-        y: (idx * stripe_height) - WATERCOLOR_STRIPE_OVERLAP
-      ),
-      width: WATERCOLOR_X_MAX - WATERCOLOR_X_MIN,
-      height: stripe_height + (2.0 * WATERCOLOR_STRIPE_OVERLAP),
-      color: color
-    )
-
-    stack = shape.to_polygon_stack
-    shape_blob_collections << stack.blobs
-  end
-
-  circle_count = ((rand() * (WATERCOLOR_MAX_CIRCLES - WATERCOLOR_MIN_CIRCLES)) + WATERCOLOR_MIN_CIRCLES).round
-
-  circle_count.times do
-    x_position = rand() * WIDTH
-    y_position = rand() * HEIGHT
-
-    radius = (rand() * (WATERCOLOR_MAX_CIRCLE_RADIUS - WATERCOLOR_MIN_CIRCLE_RADIUS)) + WATERCOLOR_MIN_CIRCLE_RADIUS
-
-    gos = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
-    color = "#{gos.sample}#{gos.sample}#{gos.sample}#{gos.sample}#{gos.sample}#{gos.sample}"
-
-    shape = Circle.new(
-      center: Point.new(x: x_position, y: y_position),
-      radius: radius,
-      color: color
-    )
-    stack = shape.to_polygon_stack
-    shape_blob_collections << stack.blobs
-  end
-end
-
-stripe_image = Magick::ImageList.new
-stripe_image.new_image(WIDTH, HEIGHT) { self.background_color = "white" }
-
-if shape_blob_collections.any?
-  gc = Magick::Draw.new
-  (0..(shape_blob_collections[0].count - 1)).to_a.each_slice(5) do |slice_indices|
-    slice_indices.each do |idx|
-      shape_blob_collections.each do |collection|
-        collection[idx].render(gc: gc)
-      end
-    end
-  end
-  gc.draw(stripe_image)
-end
-
-
-
-
-
-splat_blob_collections = []
-
-unless SKIP_WATERCOLOR
-  splat_count = ((rand() * (WATERCOLOR_MAX_SPLATS - WATERCOLOR_MIN_SPLATS)) + WATERCOLOR_MIN_SPLATS).round
-
-  gos = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a"]
-  splat_color = "#{gos.sample}#{gos.sample}#{gos.sample}#{gos.sample}#{gos.sample}#{gos.sample}"
-
-  splat_count.times do
-    x_position = rand() * WIDTH
-    y_position = rand() * HEIGHT
-
-    radius = (rand() * (WATERCOLOR_MAX_SPLAT_RADIUS - WATERCOLOR_MIN_SPLAT_RADIUS)) + WATERCOLOR_MIN_SPLAT_RADIUS
-
-    shape = Splat.new(
-      center: Point.new(x: x_position, y: y_position),
-      radius: radius,
-      color: splat_color
-    )
-    stack = shape.to_polygon_stack
-    splat_blob_collections << stack.blobs
-  end
-
-  splat_image = Magick::ImageList.new
-  splat_image.new_image(WIDTH, HEIGHT) { self.background_color = "none" }
-  splat_image.alpha(Magick::ActivateAlphaChannel)
-  splat_image.background_color = "none"
-
-
-  if splat_blob_collections.any?
-    gc = Magick::Draw.new
-    (0..(splat_blob_collections[0].count - 1)).to_a.each_slice(5) do |slice_indices|
-      slice_indices.each do |idx|
-        splat_blob_collections.each do |collection|
-          collection[idx].render(gc: gc)
-        end
-      end
-    end
-    gc.draw(splat_image)
-  end
-
-  splat_image = splat_image.blur_image(1.0, 1.0)
-  splat_image.write("splats.png") { self.format = "png" }
-
-  stripe_image = stripe_image.blur_image(5.0, 1.5)
-  stripe_image = stripe_image.composite(
-    splat_image,
-    0,
-    0,
-    AtopCompositeOp
-  )
-  stripe_image.write("watercolor.png") { self.format = "png" }
-end
-
 
 
 
@@ -477,10 +362,6 @@ class LeafImage
   end
 end
 
-leaf_image = Image.new(WIDTH, HEIGHT) { self.background_color = "white" }
-
-leaf_count = (rand() * (MAX_LEAVES - MAX_LEAVES)) + MIN_LEAVES
-
 class Gap
   attr_reader :angle_spread
   attr_reader :angle_position
@@ -489,15 +370,6 @@ class Gap
     @angle_spread = angle_spread
     @angle_position = angle_position
   end
-end
-
-gaps = []
-gap_count = (rand() * (LEAF_MAX_GAPS - LEAF_MIN_GAPS)).ceil + LEAF_MIN_GAPS
-
-gap_count.times do
-  gap_angle = (rand() * (LEAF_GAP_MAX_ANGLE - LEAF_GAP_MIN_ANGLE)) + LEAF_GAP_MIN_ANGLE
-  gap_position = 360.0 * rand()
-  gaps << Gap.new(angle_spread: gap_angle, angle_position: gap_position)
 end
 
 def next_leaf_rotation(existing_rotations:, gaps:)
@@ -516,171 +388,280 @@ def next_leaf_rotation(existing_rotations:, gaps:)
   rotation
 end
 
-existing_rotations = []
 
-global_scale = (rand() * (MAX_GLOBAL_SCALE - MIN_GLOBAL_SCALE)) + MIN_GLOBAL_SCALE
-# min_x = WIDTH * 0.4
-# min_y = HEIGHT * 0.4
-# max_x = WIDTH * 0.6
-# max_y = HEIGHT * 0.6
-# x_position = ((rand() * (max_x - min_x)) + min_x) - ((WIDTH * 0.2) / 2.0)
-# y_position = ((rand() * (max_y - min_y)) + min_y) - ((HEIGHT * 0.2) / 2.0)
-# puts "#{x_position}, #{y_position}"
 
-center_max_wiggle_x = WIDTH * 0.3
-center_max_wiggle_y = HEIGHT * 0.3
-center_negate_x = rand() < 0.5
-center_negate_y = rand() < 0.5
 
-wiggle_x = rand() * center_max_wiggle_x * (center_negate_x ? -1.0 : 1.0)
-wiggle_y = rand() * center_max_wiggle_y * (center_negate_y ? -1.0 : 1.0)
+def render_image(idx:)
+  shape_blob_collections = []
 
-leaf_count.round.times do
-  number = (1..14).to_a.sample
+  unless SKIP_WATERCOLOR
+    WATERCOLOR_STRIPE_COUNT.times do |idx|
+      stripe_height = HEIGHT / WATERCOLOR_STRIPE_COUNT
 
-  rotation = next_leaf_rotation(existing_rotations: existing_rotations, gaps: gaps)
-  existing_rotations << rotation
-  # number = 7
+      gos = ["4", "5", "6", "7", "8", "9", "a", "b"]
+      oos = ["0", "1", "2", "3", "4"]
+      color = "#{oos.sample}#{oos.sample}#{gos.sample}#{gos.sample}#{oos.sample}#{oos.sample}"
 
-  scale = global_scale + (rand() * 0.35)
+      shape = Rectangle.new(
+        upper_left: Point.new(
+          x: WATERCOLOR_X_MIN,
+          y: (idx * stripe_height) - WATERCOLOR_STRIPE_OVERLAP
+        ),
+        width: WATERCOLOR_X_MAX - WATERCOLOR_X_MIN,
+        height: stripe_height + (2.0 * WATERCOLOR_STRIPE_OVERLAP),
+        color: color
+      )
 
-  leaf = LeafImage.new(image_number: number, rotation: rotation, scale: scale)
+      stack = shape.to_polygon_stack
+      shape_blob_collections << stack.blobs
+    end
 
-  center_x = WIDTH / 2.0
+    circle_count = ((rand() * (WATERCOLOR_MAX_CIRCLES - WATERCOLOR_MIN_CIRCLES)) + WATERCOLOR_MIN_CIRCLES).round
 
-  x_offset = (WIDTH / 2.0) - leaf.offsets[:x]
-  y_offset = (HEIGHT / 2.0) - leaf.offsets[:y]
+    circle_count.times do
+      x_position = rand() * WIDTH
+      y_position = rand() * HEIGHT
 
-  image = leaf.rotated_image
+      radius = (rand() * (WATERCOLOR_MAX_CIRCLE_RADIUS - WATERCOLOR_MIN_CIRCLE_RADIUS)) + WATERCOLOR_MIN_CIRCLE_RADIUS
 
-  leaf_image = leaf_image.composite(
-    image,
-    x_offset + wiggle_x,
-    y_offset + wiggle_y,
+      gos = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
+      color = "#{gos.sample}#{gos.sample}00#{gos.sample}#{gos.sample}"
+
+      shape = Circle.new(
+        center: Point.new(x: x_position, y: y_position),
+        radius: radius,
+        color: color
+      )
+      stack = shape.to_polygon_stack
+      shape_blob_collections << stack.blobs
+    end
+  end
+
+  stripe_image = Magick::ImageList.new
+  stripe_image.new_image(WIDTH, HEIGHT) { self.background_color = "white" }
+
+  if shape_blob_collections.any?
+    gc = Magick::Draw.new
+    (0..(shape_blob_collections[0].count - 1)).to_a.each_slice(5) do |slice_indices|
+      slice_indices.each do |idx|
+        shape_blob_collections.each do |collection|
+          collection[idx].render(gc: gc)
+        end
+      end
+    end
+    gc.draw(stripe_image)
+  end
+
+
+
+
+
+  splat_blob_collections = []
+
+  unless SKIP_WATERCOLOR
+    splat_count = ((rand() * (WATERCOLOR_MAX_SPLATS - WATERCOLOR_MIN_SPLATS)) + WATERCOLOR_MIN_SPLATS).round
+
+    gos = ["4", "5", "6", "7", "8", "9", "a"]
+    splat_color = "#{gos.sample}#{gos.sample}#{gos.sample}#{gos.sample}#{gos.sample}#{gos.sample}"
+
+    splat_count.times do
+      x_position = rand() * WIDTH
+      y_position = rand() * HEIGHT
+
+      radius = (rand() * (WATERCOLOR_MAX_SPLAT_RADIUS - WATERCOLOR_MIN_SPLAT_RADIUS)) + WATERCOLOR_MIN_SPLAT_RADIUS
+
+      shape = Splat.new(
+        center: Point.new(x: x_position, y: y_position),
+        radius: radius,
+        color: splat_color
+      )
+      stack = shape.to_polygon_stack
+      splat_blob_collections << stack.blobs
+    end
+
+    spray_start_x = -100
+    spray_end_x = WIDTH + 100
+    spray_increment_min = 5
+    spray_increment_max = 30
+    spray_angle_min = -20.0
+    spray_angle_max = 20.0
+    spray_radius_min = 2.0
+    spray_radius_max = 10.0
+    spray_angle = (rand() * (spray_angle_max - spray_angle_min)) + spray_angle_min
+    spray_y_min = HEIGHT * 0.2
+    spray_y_max = HEIGHT * 0.8
+    spray_jitter_max = 200.0
+    spray_jitter_min = -100.0
+    spray_x = spray_start_x
+    spray_y = (rand() * (spray_y_max - spray_y_min)) + spray_y_min
+    while spray_x < spray_end_x
+      increment = (rand() * (spray_increment_max - spray_increment_min)) + spray_increment_min
+      spray_x = spray_x + (cos_deg(spray_angle) * increment)
+      spray_y = spray_y + (sin_deg(spray_angle) * increment)
+
+      jitter_x = (rand() * (spray_jitter_max - spray_jitter_min)) + spray_jitter_min
+      jitter_y = (rand() * (spray_jitter_max - spray_jitter_min)) + spray_jitter_min
+
+      position_x = spray_x + (cos_deg(90.0 - spray_angle) * jitter_x)
+      position_y = spray_y + (sin_deg(90.0 - spray_angle) * jitter_y)
+
+      radius = (rand() * (spray_radius_max - spray_radius_min)) * spray_radius_min
+
+      shape = Splat.new(
+        center: Point.new(x: position_x, y: position_y),
+        radius: radius,
+        color: splat_color
+      )
+      stack = shape.to_polygon_stack
+      splat_blob_collections << stack.blobs
+    end
+
+    splat_image = Magick::ImageList.new
+    splat_image.new_image(WIDTH, HEIGHT) { self.background_color = "none" }
+    splat_image.alpha(Magick::ActivateAlphaChannel)
+    splat_image.background_color = "none"
+
+
+    if splat_blob_collections.any?
+      gc = Magick::Draw.new
+      (0..(splat_blob_collections[0].count - 1)).to_a.each_slice(5) do |slice_indices|
+        slice_indices.each do |idx|
+          splat_blob_collections.each do |collection|
+            collection[idx].render(gc: gc)
+          end
+        end
+      end
+      gc.draw(splat_image)
+    end
+
+    splat_image = splat_image.blur_image(1.0, 1.0)
+    splat_image.write("splats#{idx}.png") { self.format = "png" }
+
+    stripe_image = stripe_image.blur_image(5.0, 1.5)
+    stripe_image = stripe_image.composite(
+      splat_image,
+      0,
+      0,
+      AtopCompositeOp
+    )
+
+    stripe_image.write("watercolor#{idx}.png") { self.format = "png" }
+  end
+
+  leaf_image = Image.new(WIDTH, HEIGHT) { self.background_color = "white" }
+
+  leaf_count = (rand() * (MAX_LEAVES - MAX_LEAVES)) + MIN_LEAVES
+
+  gaps = []
+  gap_count = (rand() * (LEAF_MAX_GAPS - LEAF_MIN_GAPS)).ceil + LEAF_MIN_GAPS
+
+  gap_count.times do
+    gap_angle = (rand() * (LEAF_GAP_MAX_ANGLE - LEAF_GAP_MIN_ANGLE)) + LEAF_GAP_MIN_ANGLE
+    gap_position = 360.0 * rand()
+    gaps << Gap.new(angle_spread: gap_angle, angle_position: gap_position)
+  end
+
+  existing_rotations = []
+
+  global_scale = (rand() * (MAX_GLOBAL_SCALE - MIN_GLOBAL_SCALE)) + MIN_GLOBAL_SCALE
+
+  center_max_wiggle_x = WIDTH * 0.3
+  center_max_wiggle_y = HEIGHT * 0.3
+  center_negate_x = rand() < 0.5
+  center_negate_y = rand() < 0.5
+
+  wiggle_x = rand() * center_max_wiggle_x * (center_negate_x ? -1.0 : 1.0)
+  wiggle_y = rand() * center_max_wiggle_y * (center_negate_y ? -1.0 : 1.0)
+
+  leaf_count.round.times do
+    number = (1..14).to_a.sample
+
+    rotation = next_leaf_rotation(existing_rotations: existing_rotations, gaps: gaps)
+    existing_rotations << rotation
+    # number = 7
+
+    scale = global_scale + (rand() * 0.35)
+
+    leaf = LeafImage.new(image_number: number, rotation: rotation, scale: scale)
+
+    center_x = WIDTH / 2.0
+
+    x_offset = (WIDTH / 2.0) - leaf.offsets[:x]
+    y_offset = (HEIGHT / 2.0) - leaf.offsets[:y]
+
+    image = leaf.rotated_image
+
+    leaf_image = leaf_image.composite(
+      image,
+      x_offset + wiggle_x,
+      y_offset + wiggle_y,
+      OverCompositeOp
+    )
+  end
+
+  shadow_image = Magick::ImageList.new
+  shadow_image.new_image(WIDTH, HEIGHT) { self.background_color = "none" }
+  # # shadow_image.alpha(Magick::ActivateAlphaChannel)
+  # # shadow_image.background_color = "none"
+  shadow_image.mask(leaf_image)
+
+  grey_image = Magick::ImageList.new
+  grey_image.new_image(WIDTH, HEIGHT) { self.background_color = "#111111" }
+
+  shadow_image = shadow_image.composite(
+    grey_image,
+    0,
+    0,
     OverCompositeOp
   )
-end
+
+  shadow_image = shadow_image.copy()
+  # shadow_image = shadow_image.resize(WIDTH / 2, HEIGHT / 2, GaussianFilter, 1.0)
+  # shadow_image = shadow_image.resize(WIDTH, HEIGHT, GaussianFilter, 1.0)
+  # shadow_image.alpha(Magick::ActivateAlphaChannel)
 
 
+  shadow_image = shadow_image.modulate(6.0)
+  shadow_image = shadow_image.blur_image(20.0, 5.0)
+  # shadow_image = shadow_image.transparent('white')
+  # shadow_image = leaf_image.copy
+  # shadow_image.background_color = "none"
+  # shadow_image.alpha(Magick::ActivateAlphaChannel)
+  # shadow_image = shadow_image.transparent('white')
+  shadow_image.write("shadow#{idx}.png") { self.format = "png" }
 
 
+  final_image = Image.new(WIDTH, HEIGHT) { self.background_color = "#e8dcb5" }
 
+  # final_image = final_image.composite(
+  #   texture_image,
+  #   0,
+  #   0,
+  #   OverCompositeOp
+  # )
 
+  final_image = final_image.composite(
+    shadow_image,
+    SHADOW_OFFSET,
+    SHADOW_OFFSET,
+    OverCompositeOp
+  )
 
+  final_image.mask(leaf_image)
+  final_image = final_image.composite(
+    stripe_image,
+    0,
+    0,
+    AtopCompositeOp
+  )
 
-
-
-
-
-
-
-
-
-def random_ass_distance
-  min_length = 10
-  max_length = 200
-  (rand() * (max_length - min_length)) + min_length
-end
-
-def random_ass_gap
-  min_length = 5
-  max_length = 50
-  (rand() * (max_length - min_length)) + min_length
-end
-
-
-texture_image = Magick::ImageList.new
-texture_image.new_image(WIDTH, HEIGHT) { self.background_color = "none" }
-gc = Magick::Draw.new
-gc.stroke("#d4c885").stroke_width(1.0).opacity(1.0)
-# gc.fill_opacity(WATERCOLOR_SPLAT_FILL_OPACITY).fill("##{@color}")
-angle_min = 20
-angle_max = 90
-angle = (rand() * (angle_max - angle_min)) + angle_min
-(-1 * WIDTH).step(2.0 * WIDTH, 40).each do |column|
-  total_distance = 0
-  x = column
-  y = -HEIGHT
-  while total_distance < (3.0 * HEIGHT) do
-    distance = random_ass_distance
-    old_x = x
-    old_y = y
-    x = x + (cos_deg(angle) * distance)
-    y = y + (sin_deg(angle) * distance)
-    # puts "#{x}, #{y}"
-    gc.line(old_x, old_y, x, y)
-
-    gap = random_ass_gap
-    x = x + (cos_deg(angle) * gap)
-    y = y + (sin_deg(angle) * gap)
-
-    total_distance += distance + gap
+  final_image.write("/Users/aubrey/Desktop/dandies/v4/image#{idx}.png") do
+    byebug
+    self.format = "png"
   end
 end
-gc.draw(texture_image)
 
-
-# shadow = leaf_image.transparent("black", alpha: 0.25)
-# shadow.opacity = 25.0
-# shadow = leaf_image.modulate(2.0)
-# shadow = leaf_image.transparent('white')
-# shadow = shadow.blur_image(100.0, 5.0)
-# shadow.write("shadow.png") { self.format = "png" }
-
-shadow_image = Magick::ImageList.new
-shadow_image.new_image(WIDTH, HEIGHT) { self.background_color = "none" }
-# # shadow_image.alpha(Magick::ActivateAlphaChannel)
-# # shadow_image.background_color = "none"
-shadow_image.mask(leaf_image)
-
-grey_image = Magick::ImageList.new
-grey_image.new_image(WIDTH, HEIGHT) { self.background_color = "#111111" }
-
-shadow_image = shadow_image.composite(
-  grey_image,
-  0,
-  0,
-  OverCompositeOp
-)
-
-shadow_image = shadow_image.copy()
-# shadow_image = shadow_image.resize(WIDTH / 2, HEIGHT / 2, GaussianFilter, 1.0)
-# shadow_image = shadow_image.resize(WIDTH, HEIGHT, GaussianFilter, 1.0)
-# shadow_image.alpha(Magick::ActivateAlphaChannel)
-
-
-shadow_image = shadow_image.modulate(6.0)
-shadow_image = shadow_image.blur_image(20.0, 5.0)
-# shadow_image = shadow_image.transparent('white')
-# shadow_image = leaf_image.copy
-# shadow_image.background_color = "none"
-# shadow_image.alpha(Magick::ActivateAlphaChannel)
-# shadow_image = shadow_image.transparent('white')
-shadow_image.write("shadow.png") { self.format = "png" }
-
-
-final_image = Image.new(WIDTH, HEIGHT) { self.background_color = "#e8dcb5" }
-
-final_image = final_image.composite(
-  texture_image,
-  0,
-  0,
-  OverCompositeOp
-)
-
-final_image = final_image.composite(
-  shadow_image,
-  SHADOW_OFFSET,
-  SHADOW_OFFSET,
-  OverCompositeOp
-)
-
-final_image.mask(leaf_image)
-final_image = final_image.composite(
-  stripe_image,
-  0,
-  0,
-  AtopCompositeOp
-)
-
-final_image.write("output.png") { self.format = "png" }
+10.upto(11) do |idx|
+  puts "#{idx}!!!!"
+  render_image(idx: idx)
+end
