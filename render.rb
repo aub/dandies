@@ -656,12 +656,11 @@ def render_image(idx:)
   )
 
   final_image.write("/Users/aubrey/Desktop/dandies/v4/image#{idx}.png") do
-    byebug
     self.format = "png"
   end
 end
 
-10.upto(11) do |idx|
+10.upto(21) do |idx|
   puts "#{idx}!!!!"
   render_image(idx: idx)
 end
