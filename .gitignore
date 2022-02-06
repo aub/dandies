@@ -12,6 +12,7 @@
 # Ignore editor helpers
 .vscode
 
+image*.png
 shadow*.png
 splats*.png
 watercolor*.png
