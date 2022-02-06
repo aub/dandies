@@ -52,4 +52,8 @@ class Util
   def self.random_leaf_gap_count
     random_in_range(min: Constants::LEAF_MIN_GAPS, max: Constants::LEAF_MAX_GAPS).round
   end
+
+  def self.random_global_scale(plant_count:)
+    random_in_range(min: Constants::MIN_GLOBAL_SCALE, max: Constants::MAX_GLOBAL_SCALE) / plant_count.to_f
+  end
 end
