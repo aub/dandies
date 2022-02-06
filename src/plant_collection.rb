@@ -1,3 +1,6 @@
+require_relative 'plant'
+require_relative 'point'
+
 class PlantCollection
   def initialize(attributes:, image_number:)
     @attributes = attributes
@@ -5,24 +8,37 @@ class PlantCollection
     render
   end
 
-  attr_reader :leaf_image
-
+  attr_reader :plants_image
   attr_reader :shadow_image
 
   private
 
   def render
-    @leaf_image = Magick::Image.new(Constants::IMAGE_WIDTH, Constants::IMAGE_HEIGHT) { self.background_color = "white" }
+    @plants_image = Magick::Image.new(Constants::IMAGE_WIDTH, Constants::IMAGE_HEIGHT) { self.background_color = "white" }
 
-    3.times do
-      render_plant(plant_count: 3)
+    plant_count = 3
+
+    plant_count.times do
+      global_scale = Util.random_global_scale(plant_count: plant_count)
+
+      center_max_x = Constants::IMAGE_WIDTH * 0.3
+      center_max_y = Constants::IMAGE_HEIGHT * 0.3
+      center_negate_x = rand < 0.5
+      center_negate_y = rand < 0.5
+
+      center = Point.new(
+        x: rand * center_max_x * (center_negate_x ? -1.0 : 1.0),
+        y: rand * center_max_y * (center_negate_y ? -1.0 : 1.0)
+      )
+
+      @plants_image = render_plant(center: center, global_scale: global_scale, image: @plants_image)
     end
 
     @shadow_image = Magick::ImageList.new
     @shadow_image.new_image(Constants::IMAGE_WIDTH, Constants::IMAGE_HEIGHT) { self.background_color = "none" }
     # # shadow_image.alpha(Magick::ActivateAlphaChannel)
     # # shadow_image.background_color = "none"
-    @shadow_image.mask(@leaf_image)
+    @shadow_image.mask(@plants_image)
 
     grey_image = Magick::ImageList.new
     grey_image.new_image(Constants::IMAGE_WIDTH, Constants::IMAGE_HEIGHT) { self.background_color = "#111111" }
@@ -42,7 +58,7 @@ class PlantCollection
     @shadow_image = shadow_image.modulate(6.0)
     @shadow_image = shadow_image.blur_image(20.0, 5.0)
     # shadow_image = shadow_image.transparent('white')
-    # shadow_image = leaf_image.copy
+    # shadow_image = @plants_image.copy
     # shadow_image.background_color = "none"
     # shadow_image.alpha(Magick::ActivateAlphaChannel)
     # shadow_image = shadow_image.transparent('white')
@@ -51,7 +67,7 @@ class PlantCollection
     end
   end
 
-  def render_plant(plant_count:)
+  def render_plant(center:, global_scale:, image:)
     leaf_count = Util.random_leaf_count
 
     gaps = []
@@ -64,16 +80,6 @@ class PlantCollection
     end
 
     existing_rotations = []
-
-    global_scale = Util.random_global_scale(plant_count: plant_count)
-
-    center_max_x = Constants::IMAGE_WIDTH * 0.3
-    center_max_y = Constants::IMAGE_HEIGHT * 0.3
-    center_negate_x = rand < 0.5
-    center_negate_y = rand < 0.5
-
-    center_x = rand * center_max_x * (center_negate_x ? -1.0 : 1.0)
-    center_y = rand * center_max_y * (center_negate_y ? -1.0 : 1.0)
 
     leaf_count.round.times do
       number = (1..14).to_a.sample
@@ -88,14 +94,16 @@ class PlantCollection
       x_offset = (Constants::IMAGE_WIDTH / 2.0) - leaf.offsets[:x]
       y_offset = (Constants::IMAGE_HEIGHT / 2.0) - leaf.offsets[:y]
 
-      image = leaf.rotated_image
+      leaf_image = leaf.rotated_image
 
-      @leaf_image = @leaf_image.composite(
-        image,
-        x_offset + center_x,
-        y_offset + center_y,
+      image = image.composite(
+        leaf_image,
+        x_offset + center.x,
+        y_offset + center.y,
         Magick::OverCompositeOp
       )
     end
+
+    image
   end
 end

@@ -4,8 +4,8 @@ class Plant
     @position = position
     @global_scale = global_scale
   end
-  
-  def render(plant_count:)
+
+   def render(plant_count:)
     leaf_count = Util.random_leaf_count
 
     gaps = []
@@ -52,4 +52,5 @@ class Plant
       )
     end
   end
+ 
 end

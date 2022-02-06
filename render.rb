@@ -29,7 +29,7 @@ def render_image(attributes:, image_number:)
     Magick::OverCompositeOp
   )
 
-  final_image.mask(plant_collection.leaf_image)
+  final_image.mask(plant_collection.plants_image)
   final_image = final_image.composite(
     watercolor.get_image,
     0,
