@@ -16,6 +16,8 @@ require_relative 'src/rectangle'
 require_relative 'src/splat'
 require_relative 'src/watercolor'
 
+SHADOW_OFFSET = 7
+
 def render_image(attributes:, image_number:)
   watercolor = Watercolor.new(attributes: attributes, image_number: image_number)
   plant_collection = PlantCollection.new(attributes: attributes, image_number: image_number)
@@ -24,8 +26,8 @@ def render_image(attributes:, image_number:)
 
   final_image = final_image.composite(
     plant_collection.shadow_image,
-    Constants::SHADOW_OFFSET,
-    Constants::SHADOW_OFFSET,
+    SHADOW_OFFSET,
+    SHADOW_OFFSET,
     Magick::OverCompositeOp
   )
 
@@ -37,12 +39,25 @@ def render_image(attributes:, image_number:)
     Magick::AtopCompositeOp
   )
 
-  final_image.write("image#{image_number}.png") do
+  final_image.write("image-precrop.png") do
+    self.format = 'png'
+  end
+
+  img = Magick::Image.read("image-precrop.png")[0]
+
+  img.crop!(
+    25,
+    25,
+    Constants::IMAGE_WIDTH - 25,
+    Constants::IMAGE_HEIGHT - 25 
+  )
+
+  img.write("image#{image_number}.png") do
     self.format = 'png'
   end
 end
 
-1.upto(1) do |idx|
+1.upto(100) do |idx|
   attributes = Attributes.new
   puts "Rendering image #{idx}"
   puts attributes.inspect

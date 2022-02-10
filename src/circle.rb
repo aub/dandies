@@ -3,6 +3,9 @@ require_relative "polygon_stack"
 require_relative "util"
 
 class Circle
+  CIRCLE_WILDNESS_FACTOR = 15.0
+  CIRCLE_WILDNESS_MIN = 25.0
+
   def initialize(center:, radius:, color:)
     @center = center
     @radius = radius
@@ -16,7 +19,7 @@ class Circle
       initial_points << Point.new(
         x: @center.x + (@radius * Util.cos_deg(angle)),
         y: @center.y + (@radius * Util.sin_deg(angle)),
-        wildness: (rand * Constants::CIRCLE_WILDNESS_FACTOR) + Constants::CIRCLE_WILDNESS_MIN
+        wildness: (rand * CIRCLE_WILDNESS_FACTOR) + CIRCLE_WILDNESS_MIN
       )
     end
 

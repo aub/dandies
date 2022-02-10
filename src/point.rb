@@ -8,4 +8,11 @@ class Point
     @y = y
     @wildness = wildness
   end
+
+  def distance_from(point:)
+    Math.sqrt(
+      ((point.x - @x) * (point.x - @x)) +
+      ((point.y - @y) * (point.y - @y))
+    )
+  end
 end

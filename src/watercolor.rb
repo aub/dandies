@@ -1,4 +1,11 @@
+require_relative 'color'
+
 class Watercolor
+  WATERCOLOR_X_MIN = -100
+  WATERCOLOR_X_MAX = Constants::IMAGE_WIDTH + 100
+  WATERCOLOR_STRIPE_COUNT = 3
+  WATERCOLOR_STRIPE_OVERLAP = 100
+
   def initialize(attributes:, image_number:)
     @attributes = attributes
     @image_number = image_number
@@ -33,23 +40,25 @@ class Watercolor
 
     splat_count = Util.random_watercolor_splat_count
 
-    gos = ["4", "5", "6", "7", "8", "9", "a"]
-    splat_color = "#{gos.sample}#{gos.sample}#{gos.sample}#{gos.sample}#{gos.sample}#{gos.sample}"
+    # gos = ["4", "5", "6", "7", "8", "9", "a"]
+    # splat_color = "#{gos.sample}#{gos.sample}#{gos.sample}#{gos.sample}#{gos.sample}#{gos.sample}"
 
-    splat_count.times do
-      x_position = rand * Constants::IMAGE_WIDTH
-      y_position = rand * Constants::IMAGE_HEIGHT
+    splat_color = Color.random_color(palette: @attributes.palette).to_rgb
 
-      radius = Util.random_watercolor_splat_radius
+    # splat_count.times do
+    #   x_position = rand * Constants::IMAGE_WIDTH
+    #   y_position = rand * Constants::IMAGE_HEIGHT
 
-      shape = Splat.new(
-        center: Point.new(x: x_position, y: y_position),
-        radius: radius,
-        color: splat_color
-      )
-      stack = shape.to_polygon_stack
-      splat_blob_collections << stack.blobs
-    end
+    #   radius = Util.random_watercolor_splat_radius
+
+    #   shape = Splat.new(
+    #     center: Point.new(x: x_position, y: y_position),
+    #     radius: radius,
+    #     color: splat_color
+    #   )
+    #   stack = shape.to_polygon_stack
+    #   splat_blob_collections << stack.blobs
+    # end
 
     spray_start_x = -100
     spray_end_x = Constants::IMAGE_WIDTH + 100
@@ -62,8 +71,8 @@ class Watercolor
     spray_angle = (rand * (spray_angle_max - spray_angle_min)) + spray_angle_min
     spray_y_min = Constants::IMAGE_HEIGHT * 0.2
     spray_y_max = Constants::IMAGE_HEIGHT * 0.8
-    spray_jitter_max = 200.0
-    spray_jitter_min = -100.0
+    spray_jitter_max = 300.0
+    spray_jitter_min = -300.0
     spray_x = spray_start_x
     spray_y = (rand * (spray_y_max - spray_y_min)) + spray_y_min
     while spray_x < spray_end_x
@@ -127,20 +136,22 @@ class Watercolor
   private
 
   def render_stripes
-    Constants::WATERCOLOR_STRIPE_COUNT.times do |idx|
-      stripe_height = Constants::IMAGE_HEIGHT / Constants::WATERCOLOR_STRIPE_COUNT
+    WATERCOLOR_STRIPE_COUNT.times do |idx|
+      stripe_height = Constants::IMAGE_HEIGHT / WATERCOLOR_STRIPE_COUNT
 
-      gos = ["4", "5", "6", "7", "8", "9", "a", "b"]
-      oos = ["0", "1", "2", "3", "4"]
-      color = "#{oos.sample}#{oos.sample}#{gos.sample}#{gos.sample}#{oos.sample}#{oos.sample}"
+      # gos = ["4", "5", "6", "7", "8", "9", "a", "b"]
+      # oos = ["0", "1", "2", "3", "4"]
+      # color = "#{oos.sample}#{oos.sample}#{gos.sample}#{gos.sample}#{oos.sample}#{oos.sample}"
+
+      color = Color.random_color(palette: @attributes.palette, green: true).to_rgb
 
       shape = Rectangle.new(
         upper_left: Point.new(
-          x: Constants::WATERCOLOR_X_MIN,
-          y: (idx * stripe_height) - Constants::WATERCOLOR_STRIPE_OVERLAP
+          x: WATERCOLOR_X_MIN,
+          y: (idx * stripe_height) - WATERCOLOR_STRIPE_OVERLAP
         ),
-        width: Constants::WATERCOLOR_X_MAX - Constants::WATERCOLOR_X_MIN,
-        height: stripe_height + (2.0 * Constants::WATERCOLOR_STRIPE_OVERLAP),
+        width: WATERCOLOR_X_MAX - WATERCOLOR_X_MIN,
+        height: stripe_height + (2.0 * WATERCOLOR_STRIPE_OVERLAP),
         color: color
       )
 
@@ -158,8 +169,9 @@ class Watercolor
 
       radius = Util.random_watercolor_circle_radius
 
-      gos = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
-      color = "#{gos.sample}#{gos.sample}00#{gos.sample}#{gos.sample}"
+      # gos = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
+      # color = "#{gos.sample}#{gos.sample}00#{gos.sample}#{gos.sample}"
+      color = Color.random_color(palette: @attributes.palette, green: true).to_rgb
 
       shape = Circle.new(
         center: Point.new(x: x_position, y: y_position),

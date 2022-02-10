@@ -3,6 +3,9 @@ require_relative "polygon_stack"
 require_relative "util"
 
 class Splat
+  SPLAT_WILDNESS_FACTOR = 0.2
+  SPLAT_WILDNESS_MIN = 4.0
+
   def initialize(center:, radius:, color:)
     @center = center
     @radius = radius
@@ -16,7 +19,7 @@ class Splat
       initial_points << Point.new(
         x: @center.x + (@radius * Util.cos_deg(angle)),
         y: @center.y + (@radius * Util.sin_deg(angle)),
-        wildness: (rand * Constants::SPLAT_WILDNESS_FACTOR) + Constants::SPLAT_WILDNESS_MIN
+        wildness: (rand * SPLAT_WILDNESS_FACTOR) + SPLAT_WILDNESS_MIN
       )
     end
 

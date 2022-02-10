@@ -1,7 +1,9 @@
-require_relative 'plant'
 require_relative 'point'
 
 class PlantCollection
+  LEAF_GAP_MIN_ANGLE = 5.0
+  LEAF_GAP_MAX_ANGLE = 60.0
+
   def initialize(attributes:, image_number:)
     @attributes = attributes
     @image_number = image_number
@@ -13,25 +15,39 @@ class PlantCollection
 
   private
 
-  def render
-    @plants_image = Magick::Image.new(Constants::IMAGE_WIDTH, Constants::IMAGE_HEIGHT) { self.background_color = "white" }
+  def next_plant_position(previous_positions:)
+    candidates = []
 
-    plant_count = 3
-
-    plant_count.times do
-      global_scale = Util.random_global_scale(plant_count: plant_count)
-
-      center_max_x = Constants::IMAGE_WIDTH * 0.3
-      center_max_y = Constants::IMAGE_HEIGHT * 0.3
+    100.times do
+      center_max_x = ((Constants::IMAGE_WIDTH - 100.0) / 2.0)
+      center_max_y = ((Constants::IMAGE_HEIGHT - 100.0) / 2.0)
       center_negate_x = rand < 0.5
       center_negate_y = rand < 0.5
 
-      center = Point.new(
+      candidates << Point.new(
         x: rand * center_max_x * (center_negate_x ? -1.0 : 1.0),
         y: rand * center_max_y * (center_negate_y ? -1.0 : 1.0)
       )
+    end
 
-      @plants_image = render_plant(center: center, global_scale: global_scale, image: @plants_image)
+    candidates.max_by do |candidate|
+      distances = previous_positions.map { |pos| pos.distance_from(point: candidate) }
+      distances.min
+    end
+  end
+
+  def render
+    @plants_image = Magick::Image.new(Constants::IMAGE_WIDTH, Constants::IMAGE_HEIGHT) { self.background_color = "white" }
+
+    plant_count = @attributes.plant_count
+    plant_positions = []
+
+    plant_count.times do
+      global_scale = Util.random_global_scale(plant_count: plant_count)
+      position = next_plant_position(previous_positions: plant_positions)
+      plant_positions << position
+
+      @plants_image = render_plant(center: position, global_scale: global_scale, image: @plants_image)
     end
 
     @shadow_image = Magick::ImageList.new
@@ -74,7 +90,7 @@ class PlantCollection
     gap_count = Util.random_leaf_gap_count
 
     gap_count.times do
-      gap_angle = (rand * (Constants::LEAF_GAP_MAX_ANGLE - Constants::LEAF_GAP_MIN_ANGLE)) + Constants::LEAF_GAP_MIN_ANGLE
+      gap_angle = (rand * (LEAF_GAP_MAX_ANGLE - LEAF_GAP_MIN_ANGLE)) + LEAF_GAP_MIN_ANGLE
       gap_position = 360.0 * rand
       gaps << Gap.new(angle_spread: gap_angle, angle_position: gap_position)
     end

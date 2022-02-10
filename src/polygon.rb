@@ -5,6 +5,11 @@ require_relative "constants"
 require_relative "point"
 
 class Polygon
+  WATERCOLOR_SLICE_OPACITY = 0.08
+  WATERCOLOR_STROKE_OPACITY = 0.45
+  WATERCOLOR_STROKE_WIDTH = 1.0
+  WATERCOLOR_SPLAT_FILL_OPACITY = 0.12
+
   attr_reader :color
   attr_reader :points
   attr_reader :stroke
@@ -65,10 +70,10 @@ class Polygon
 
     # gc.opacity(WATERCOLOR_SLICE_OPACITY)
     if @stroke
-      gc.stroke("##{@color}").stroke_width(Constants::WATERCOLOR_STROKE_WIDTH).opacity(Constants::WATERCOLOR_STROKE_OPACITY)
-      gc.fill_opacity(Constants::WATERCOLOR_SPLAT_FILL_OPACITY).fill("##{@color}")
+      gc.stroke("##{@color}").stroke_width(WATERCOLOR_STROKE_WIDTH).opacity(WATERCOLOR_STROKE_OPACITY)
+      gc.fill_opacity(WATERCOLOR_SPLAT_FILL_OPACITY).fill("##{@color}")
     else
-      gc.fill_opacity(Constants::WATERCOLOR_SLICE_OPACITY).fill("##{@color}")
+      gc.fill_opacity(WATERCOLOR_SLICE_OPACITY).fill("##{@color}")
     end
     gc.polygon(*polygon_values)
   end

@@ -2,6 +2,9 @@ require_relative "point"
 require_relative "polygon_stack"
 
 class Rectangle
+  WILDNESS_FACTOR = 30.0
+  WILDNESS_MIN = 40.0
+
   def initialize(upper_left:, width:, height:, color:)
     @upper_left = upper_left
     @width = width
@@ -14,22 +17,22 @@ class Rectangle
       Point.new(
         x: @upper_left.x,
         y: @upper_left.y,
-        wildness: (rand * Constants::WILDNESS_FACTOR) + Constants::WILDNESS_MIN
+        wildness: (rand * WILDNESS_FACTOR) + WILDNESS_MIN
       ),
       Point.new(
         x: @upper_left.x + @width,
         y: @upper_left.y,
-        wildness: (rand * Constants::WILDNESS_FACTOR) + Constants::WILDNESS_MIN
+        wildness: (rand * WILDNESS_FACTOR) + WILDNESS_MIN
       ),
       Point.new(
         x: @upper_left.x + @width,
         y: @upper_left.y + @height,
-        wildness: (rand * Constants::WILDNESS_FACTOR) + Constants::WILDNESS_MIN
+        wildness: (rand * WILDNESS_FACTOR) + WILDNESS_MIN
       ),
       Point.new(
         x: @upper_left.x,
         y: @upper_left.y + @height,
-        wildness: (rand * Constants::WILDNESS_FACTOR) + Constants::WILDNESS_MIN
+        wildness: (rand * WILDNESS_FACTOR) + WILDNESS_MIN
       )
     ]
 
