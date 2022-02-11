@@ -21,8 +21,11 @@ class Watercolor
     render_stripes
     render_circles
 
+    palette = @attributes.palette
     @final_image = Magick::ImageList.new
-    @final_image.new_image(Constants::IMAGE_WIDTH, Constants::IMAGE_HEIGHT) { self.background_color = "white" }
+    @final_image.new_image(Constants::IMAGE_WIDTH, Constants::IMAGE_HEIGHT) do
+      self.background_color = "##{Color.random_color(palette: palette, green: true).to_rgb}"
+    end
 
     if @shape_blob_collections.any?
       gc = Magick::Draw.new
@@ -42,20 +45,20 @@ class Watercolor
 
     splat_color = Color.random_color(palette: @attributes.palette).to_rgb
 
-    # splat_count.times do
-    #   x_position = rand * Constants::IMAGE_WIDTH
-    #   y_position = rand * Constants::IMAGE_HEIGHT
+    splat_count.times do
+      x_position = rand * Constants::IMAGE_WIDTH
+      y_position = rand * Constants::IMAGE_HEIGHT
 
-    #   radius = Util.random_watercolor_splat_radius
+      radius = Util.random_watercolor_splat_radius
 
-    #   shape = Splat.new(
-    #     center: Point.new(x: x_position, y: y_position),
-    #     radius: radius,
-    #     color: splat_color
-    #   )
-    #   stack = shape.to_polygon_stack
-    #   splat_blob_collections << stack.blobs
-    # end
+      shape = Splat.new(
+        center: Point.new(x: x_position, y: y_position),
+        radius: radius,
+        color: splat_color
+      )
+      stack = shape.to_polygon_stack
+      splat_blob_collections << stack.blobs
+    end
 
     spray_start_x = -100
     spray_end_x = Constants::IMAGE_WIDTH + 100
@@ -136,10 +139,6 @@ class Watercolor
     WATERCOLOR_STRIPE_COUNT.times do |idx|
       stripe_height = Constants::IMAGE_HEIGHT / WATERCOLOR_STRIPE_COUNT
 
-      # gos = ["4", "5", "6", "7", "8", "9", "a", "b"]
-      # oos = ["0", "1", "2", "3", "4"]
-      # color = "#{oos.sample}#{oos.sample}#{gos.sample}#{gos.sample}#{oos.sample}#{oos.sample}"
-
       color = Color.random_color(palette: @attributes.palette, green: true).to_rgb
 
       shape = Rectangle.new(
@@ -166,9 +165,7 @@ class Watercolor
 
       radius = Util.random_watercolor_circle_radius
 
-      # gos = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
-      # color = "#{gos.sample}#{gos.sample}00#{gos.sample}#{gos.sample}"
-      color = Color.random_color(palette: @attributes.palette, green: true).to_rgb
+      color = Color.random_color(palette: @attributes.palette).to_rgb
 
       shape = Circle.new(
         center: Point.new(x: x_position, y: y_position),

@@ -3,7 +3,7 @@ require_relative "polygon_stack"
 
 class Rectangle
   WILDNESS_FACTOR = 30.0
-  WILDNESS_MIN = 40.0
+  WILDNESS_MIN = 150.0
 
   def initialize(upper_left:, width:, height:, color:)
     @upper_left = upper_left

@@ -59,7 +59,7 @@ def render_image(attributes:, image_number:)
   end
 end
 
-1.upto(10) do |idx|
+1.upto(30) do |idx|
   attributes = Attributes.new
   puts "Rendering image #{idx}"
   puts attributes.inspect
