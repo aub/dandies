@@ -6,7 +6,8 @@ class Color
     { h: 265, s: 82.6, v: 81.2 },
     { h: 354, s: 55.5, v: 86.3 },
     { h: 143, s: 54.1, v: 72.5, is_green_range: true },
-    { h: 74, s: 52.7, v: 51.4, is_green_range: true }
+    { h: 74, s: 52.7, v: 51.4, is_green_range: true },
+    { h: 46, s: 22.0, v: 91.0, is_background: true }
   ]
 
   SEVENTIES_COLORS = [
@@ -15,7 +16,8 @@ class Color
     { h: 22, s: 77.1, v: 82.4 },
     { h: 10, s: 77.6, v: 71.8 },
     { h: 190, s: 46.8, v: 55.3, is_green_range: true },
-    { h: 167, s: 14.4, v: 65.5, is_green_range: true }
+    { h: 167, s: 14.4, v: 65.5, is_green_range: true },
+    { h: 46, s: 22.0, v: 91.0, is_background: true }
   ]
 
   attr_reader :is_green_range
@@ -26,7 +28,7 @@ class Color
     @v = v
   end
 
-  def self.random_color(green: false, palette:)
+  def self.random_color(green: false, background: false, palette:)
     color_options = case palette
     when :planty
       SIXTIES_COLORS
@@ -42,8 +44,10 @@ class Color
 
     if green
       color = color_options.filter { |c| c[:is_green_range] }.sample
+    elsif background
+      color = color_options.filter { |c| c[:is_background] }.sample
     else
-      color = color_options.reject { |c| c[:is_green_range] }.sample
+      color = color_options.reject { |c| c[:is_green_range] || c[:is_background] }.sample
     end
     self.new(h: color[:h], s: color[:s], v: color[:v]).shift
   end

@@ -22,7 +22,9 @@ def render_image(attributes:, image_number:)
   watercolor = Watercolor.new(attributes: attributes, image_number: image_number)
   plant_collection = PlantCollection.new(attributes: attributes, image_number: image_number)
 
-  final_image = Magick::Image.new(Constants::IMAGE_WIDTH, Constants::IMAGE_HEIGHT) { self.background_color = '#e8dcb5' }
+  final_image = Magick::Image.new(Constants::IMAGE_WIDTH, Constants::IMAGE_HEIGHT) do
+    self.background_color = "##{Color.random_color(background: true, palette: attributes.palette).to_rgb}"
+  end
 
   final_image = final_image.composite(
     plant_collection.shadow_image,
@@ -57,7 +59,7 @@ def render_image(attributes:, image_number:)
   end
 end
 
-1.upto(100) do |idx|
+1.upto(10) do |idx|
   attributes = Attributes.new
   puts "Rendering image #{idx}"
   puts attributes.inspect

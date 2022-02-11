@@ -68,6 +68,20 @@ class Util
   end
 
   def self.random_global_scale(plant_count:)
-    random_in_range(min: Constants::MIN_GLOBAL_SCALE, max: Constants::MAX_GLOBAL_SCALE) / (plant_count.to_f * plant_count.to_f)
+    numerator = case plant_count
+    when 1
+      1.0
+    when 2
+      2.0
+    when 3
+      6.0
+    when 4
+      10.0
+    when 5
+      15.0
+    when 6
+      25.0
+    end
+    random_in_range(min: Constants::MIN_GLOBAL_SCALE, max: Constants::MAX_GLOBAL_SCALE) / numerator
   end
 end

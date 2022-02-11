@@ -3,6 +3,9 @@ require_relative 'point'
 class PlantCollection
   LEAF_GAP_MIN_ANGLE = 5.0
   LEAF_GAP_MAX_ANGLE = 60.0
+  CENTER_MAX_X = (Constants::IMAGE_WIDTH - 200.0) / 2.0
+  CENTER_MAX_Y = (Constants::IMAGE_HEIGHT - 200.0) / 2.0
+  MIN_PLANT_DISTANCE = 250.0
 
   def initialize(attributes:, image_number:)
     @attributes = attributes
@@ -15,24 +18,30 @@ class PlantCollection
 
   private
 
+  def random_plant_position
+    center_negate_x = rand < 0.5
+    center_negate_y = rand < 0.5
+
+    Point.new(
+      x: rand * CENTER_MAX_X * (center_negate_x ? -1.0 : 1.0),
+      y: rand * CENTER_MAX_Y * (center_negate_y ? -1.0 : 1.0)
+    )
+  end
+
   def next_plant_position(previous_positions:)
-    candidates = []
+    if previous_positions && previous_positions.any?
+      min_distance = 0
+      position = nil
+      while min_distance < MIN_PLANT_DISTANCE
+        position = random_plant_position
 
-    100.times do
-      center_max_x = ((Constants::IMAGE_WIDTH - 100.0) / 2.0)
-      center_max_y = ((Constants::IMAGE_HEIGHT - 100.0) / 2.0)
-      center_negate_x = rand < 0.5
-      center_negate_y = rand < 0.5
+        distances = previous_positions.map { |pos| pos.distance_from(point: position) }
+        min_distance = distances.min
+      end
 
-      candidates << Point.new(
-        x: rand * center_max_x * (center_negate_x ? -1.0 : 1.0),
-        y: rand * center_max_y * (center_negate_y ? -1.0 : 1.0)
-      )
-    end
-
-    candidates.max_by do |candidate|
-      distances = previous_positions.map { |pos| pos.distance_from(point: candidate) }
-      distances.min
+      position
+    else
+      random_plant_position
     end
   end
 
@@ -45,6 +54,7 @@ class PlantCollection
     plant_count.times do
       global_scale = Util.random_global_scale(plant_count: plant_count)
       position = next_plant_position(previous_positions: plant_positions)
+      puts "PLANT AT #{position.x} -> #{position.y}"
       plant_positions << position
 
       @plants_image = render_plant(center: position, global_scale: global_scale, image: @plants_image)

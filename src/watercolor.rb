@@ -40,9 +40,6 @@ class Watercolor
 
     splat_count = Util.random_watercolor_splat_count
 
-    # gos = ["4", "5", "6", "7", "8", "9", "a"]
-    # splat_color = "#{gos.sample}#{gos.sample}#{gos.sample}#{gos.sample}#{gos.sample}#{gos.sample}"
-
     splat_color = Color.random_color(palette: @attributes.palette).to_rgb
 
     # splat_count.times do
