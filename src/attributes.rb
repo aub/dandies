@@ -11,9 +11,9 @@ class Attributes
     palette_random = rand
     palette = :planty
     palette = :sixties if palette_random > 0.5
-    palette = :seventies if palette_random > 0.75
-    palette = :eighties if palette_random > 0.875
-    palette = :nineties if palette_random > 0.95
+    palette = :doom if palette_random > 0.75
+    # palette = :eighties if palette_random > 0.875
+    # palette = :nineties if palette_random > 0.95
 
     @attributes = {
       palette: palette,

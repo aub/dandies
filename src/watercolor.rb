@@ -1,4 +1,6 @@
 require_relative 'color'
+require_relative 'splat'
+require_relative 'splat_splash'
 
 class Watercolor
   WATERCOLOR_X_MIN = -100
@@ -49,53 +51,65 @@ class Watercolor
       x_position = rand * Constants::IMAGE_WIDTH
       y_position = rand * Constants::IMAGE_HEIGHT
 
-      radius = Util.random_watercolor_splat_radius
-
       shape = Splat.new(
         center: Point.new(x: x_position, y: y_position),
-        radius: radius,
         color: splat_color
       )
       stack = shape.to_polygon_stack
       splat_blob_collections << stack.blobs
+
+      splash_count = ((rand * 10.0) + 10.0).round
+      splash_count.times do
+        angle = (0..359).to_a.sample
+        distance = (rand * 40.0) + 20.0
+        splash_x = x_position + (distance * Util.cos_deg(angle))
+        splash_y = y_position + (distance * Util.sin_deg(angle))
+
+        shape = SplatSplash.new(
+          center: Point.new(x: splash_x, y: splash_y),
+          color: splat_color
+        )
+        stack = shape.to_polygon_stack
+        splat_blob_collections << stack.blobs
+      end
     end
 
-    spray_start_x = -100
-    spray_end_x = Constants::IMAGE_WIDTH + 100
-    spray_increment_min = 5
-    spray_increment_max = 30
-    spray_angle_min = -20.0
-    spray_angle_max = 20.0
-    spray_radius_min = 2.0
-    spray_radius_max = 10.0
-    spray_angle = (rand * (spray_angle_max - spray_angle_min)) + spray_angle_min
-    spray_y_min = Constants::IMAGE_HEIGHT * 0.2
-    spray_y_max = Constants::IMAGE_HEIGHT * 0.8
-    spray_jitter_max = 300.0
-    spray_jitter_min = -300.0
-    spray_x = spray_start_x
-    spray_y = (rand * (spray_y_max - spray_y_min)) + spray_y_min
-    while spray_x < spray_end_x
-      increment = (rand * (spray_increment_max - spray_increment_min)) + spray_increment_min
-      spray_x += (Util.cos_deg(spray_angle) * increment)
-      spray_y += (Util.sin_deg(spray_angle) * increment)
+    # spray_start_x = -100
+    # spray_end_x = Constants::IMAGE_WIDTH + 100
+    # spray_increment_min = 5
+    # spray_increment_max = 30
+    # spray_angle_min = -20.0
+    # spray_angle_max = 20.0
+    # spray_radius_min = 2.0
+    # spray_radius_max = 10.0
+    # spray_angle = (rand * (spray_angle_max - spray_angle_min)) + spray_angle_min
+    # spray_y_min = Constants::IMAGE_HEIGHT * 0.2
+    # spray_y_max = Constants::IMAGE_HEIGHT * 0.8
+    # spray_jitter_max = 300.0
+    # spray_jitter_min = -300.0
+    # spray_x = spray_start_x
+    # spray_y = (rand * (spray_y_max - spray_y_min)) + spray_y_min
+    # while spray_x < spray_end_x
+    #   increment = (rand * (spray_increment_max - spray_increment_min)) + spray_increment_min
+    #   spray_x += (Util.cos_deg(spray_angle) * increment)
+    #   spray_y += (Util.sin_deg(spray_angle) * increment)
 
-      jitter_x = (rand * (spray_jitter_max - spray_jitter_min)) + spray_jitter_min
-      jitter_y = (rand * (spray_jitter_max - spray_jitter_min)) + spray_jitter_min
+    #   jitter_x = (rand * (spray_jitter_max - spray_jitter_min)) + spray_jitter_min
+    #   jitter_y = (rand * (spray_jitter_max - spray_jitter_min)) + spray_jitter_min
 
-      position_x = spray_x + (Util.cos_deg(90.0 - spray_angle) * jitter_x)
-      position_y = spray_y + (Util.sin_deg(90.0 - spray_angle) * jitter_y)
+    #   position_x = spray_x + (Util.cos_deg(90.0 - spray_angle) * jitter_x)
+    #   position_y = spray_y + (Util.sin_deg(90.0 - spray_angle) * jitter_y)
 
-      radius = (rand * (spray_radius_max - spray_radius_min)) * spray_radius_min
+    #   radius = (rand * (spray_radius_max - spray_radius_min)) * spray_radius_min
 
-      shape = Splat.new(
-        center: Point.new(x: position_x, y: position_y),
-        radius: radius,
-        color: splat_color
-      )
-      stack = shape.to_polygon_stack
-      splat_blob_collections << stack.blobs
-    end
+    #   shape = Splat.new(
+    #     center: Point.new(x: position_x, y: position_y),
+    #     radius: radius,
+    #     color: splat_color
+    #   )
+    #   stack = shape.to_polygon_stack
+    #   splat_blob_collections << stack.blobs
+    # end
 
     splat_image = Magick::ImageList.new
     splat_image.new_image(Constants::IMAGE_WIDTH, Constants::IMAGE_HEIGHT) { self.background_color = "none" }
@@ -128,9 +142,9 @@ class Watercolor
       Magick::AtopCompositeOp
     )
 
-    if Constants::SAVE_COMPONENT_IMAGES
+    # if Constants::SAVE_COMPONENT_IMAGES
       @final_image.write("watercolor#{@image_number}.png") { self.format = "png" }
-    end
+    # end
   end
 
   private

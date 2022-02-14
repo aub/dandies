@@ -23,6 +23,10 @@ class Util
     Math.sin(0.01745329252 * degrees)
   end
 
+  def self.random_angle
+    random_in_range(min: 0.0, max: 359.999)
+  end
+
   def self.next_leaf_rotation(existing_rotations:, gaps:)
     bad = true
     rotation = 0.0

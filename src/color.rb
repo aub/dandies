@@ -36,7 +36,7 @@ class Color
     [39, 38, 64, nil],
     [49, 34, 68, nil],
     [62, 31, 71, nil],
-    [191, 172, 200, :background],
+    [189, 187, 182, :background],
   ]
 
   SEVENTIES_COLORS = [
@@ -56,19 +56,14 @@ class Color
   end
 
   def self.random_color(green: false, background: false, palette:)
-    # color_options = case palette
-    # when :planty
-    #   SIXTIES_COLORS
-    # when :sixties
-    #   SIXTIES_COLORS
-    # when :seventies
-    #   SIXTIES_COLORS
-    # when :eighties
-    #   SIXTIES_COLORS
-    # when :nineties
-    #   SIXTIES_COLORS
-    # end
-    color_options = DOOM_COLORS
+    color_options = case palette
+    when :planty
+      PLANTY_COLORS
+    when :sixties
+      SIXTIES_COLORS
+    when :doom
+      DOOM_COLORS
+    end
 
     if green
       color = color_options.filter { |c| c[3] == :green }.sample
