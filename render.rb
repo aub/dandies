@@ -18,6 +18,8 @@ require_relative 'src/watercolor'
 
 SHADOW_OFFSET = 7
 
+# rubocop:disable Metrics/AbcSize
+# rubocop:disable Metrics/MethodLength
 def render_image(attributes:, image_number:)
   watercolor = Watercolor.new(attributes: attributes, image_number: image_number)
   plant_collection = PlantCollection.new(attributes: attributes, image_number: image_number)
@@ -41,17 +43,17 @@ def render_image(attributes:, image_number:)
     Magick::AtopCompositeOp
   )
 
-  final_image.write("image-precrop.png") do
+  final_image.write('image-precrop.png') do
     self.format = 'png'
   end
 
-  img = Magick::Image.read("image-precrop.png")[0]
+  img = Magick::Image.read('image-precrop.png')[0]
 
   img.crop!(
     25,
     25,
     Constants::IMAGE_WIDTH - 25,
-    Constants::IMAGE_HEIGHT - 25 
+    Constants::IMAGE_HEIGHT - 25
   )
 
   img.write("image#{image_number}.png") do
@@ -59,9 +61,11 @@ def render_image(attributes:, image_number:)
   end
 end
 
-1.upto(1) do |idx|
+1.upto(25) do |idx|
   attributes = Attributes.new
   puts "Rendering image #{idx}"
   puts attributes.inspect
   render_image(attributes: attributes, image_number: idx)
 end
+# rubocop:enable Metrics/AbcSize
+# rubocop:enable Metrics/MethodLength

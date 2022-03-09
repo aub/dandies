@@ -77,12 +77,12 @@ class Color
   end
 
   def shift(bright: false)
-    @s = [[@s + (rand * 30.0) - 20.0, 0.0].max, 100.0].min
-    if bright
-      @v = (rand * 10.0) + 65.0
-    else
-      @v = (rand * 40.0) + 30.0
-    end
+    # @s = [[@s + (rand * 30.0) - 20.0, 0.0].max, 100.0].min
+    # if bright
+    #   @v = (rand * 10.0) + 65.0
+    # else
+    #   @v = (rand * 40.0) + 30.0
+    # end
     self
   end
 
@@ -116,13 +116,13 @@ class Color
     min = [r, g, b].min
     delta = max - min
     v = max * 100
-  
+
     if (max != 0.0)
       s = delta / max * 100
     else
       s = 0.0
     end
-  
+
     if (s == 0.0)
       h = 0.0
     else
@@ -133,14 +133,14 @@ class Color
       elsif (b == max)
         h = 4 + (r - g) / delta
       end
-  
+
       h *= 60.0
-  
+
       if (h < 0)
         h += 360.0
       end
     end
-  
+
     { h: h, s: s, v: v }
   end
 end

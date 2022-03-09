@@ -8,17 +8,21 @@ class Attributes
     plant_count = 5 if plant_count_random > 0.95
     plant_count = 6 if plant_count_random > 0.98
 
-    palette_random = rand
-    palette = :planty
-    palette = :sixties if palette_random > 0.5
-    palette = :doom if palette_random > 0.75
+    # palette_random = rand
+    # palette = :planty
+    # palette = :sixties if palette_random > 0.5
+    # palette = :doom if palette_random > 0.75
     # palette = :eighties if palette_random > 0.875
     # palette = :nineties if palette_random > 0.95
+    palette = [:planty, :sixties, :doom].sample
+
+    splat_splash_random = rand
 
     @attributes = {
       palette: palette,
       plant_count: plant_count,
-      splats: rand >= 0.75
+      splashes: true, # splat_splash_random >= 0.95,
+      splats: true # splat_splash_random >= 0.75
     }
   end
 
@@ -32,5 +36,9 @@ class Attributes
 
   def splats?
     @attributes[:splats]
+  end
+
+  def splashes?
+    @attributes[:splashes]
   end
 end
